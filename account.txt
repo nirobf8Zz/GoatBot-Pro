@@ -1,3 +1,169 @@
-....
-
-Paste Your FB JSON COOKIES ✅
+[
+    {
+        "domain": ".facebook.com",
+        "hostOnly": true,
+        "httpOnly": true,
+        "storeId": null,
+        "name": "ps_l",
+        "sameSite": "lax",
+        "path": "/",
+        "value": "1",
+        "secure": true,
+        "session": false
+    },
+    {
+        "path": "/",
+        "httpOnly": true,
+        "storeId": null,
+        "hostOnly": true,
+        "value": "uhO6ano13ft-uLAI__qfVIUz",
+        "name": "datr",
+        "domain": ".facebook.com",
+        "secure": true,
+        "session": false
+    },
+    {
+        "domain": ".facebook.com",
+        "httpOnly": true,
+        "session": false,
+        "secure": true,
+        "storeId": null,
+        "name": "fr",
+        "path": "/",
+        "hostOnly": true,
+        "value": "0UDInmUvhWKB3Yi7f.AWd9WU1VfyUR_Pl0x-tWDZMRWZKmQxRwUNB3hr6CJpNObcuSGtE.BquhO6..AAA.0.0.BquhPb.AWcJce__lWUaywvUUWEM4gVa0yQ"
+    },
+    {
+        "path": "/",
+        "domain": ".facebook.com",
+        "storeId": null,
+        "name": "vpd",
+        "value": "v1%3B663x390x3",
+        "session": false,
+        "secure": true,
+        "httpOnly": false,
+        "hostOnly": true
+    },
+    {
+        "session": false,
+        "secure": true,
+        "path": "/",
+        "domain": ".facebook.com",
+        "hostOnly": true,
+        "httpOnly": true,
+        "name": "xs",
+        "storeId": null,
+        "value": "33%3A9OwKYoGT764__A%3A2%3A1790579670%3A-1%3A-1"
+    },
+    {
+        "value": "101422447%3BT%3A29842994",
+        "session": false,
+        "storeId": null,
+        "domain": ".facebook.com",
+        "hostOnly": true,
+        "name": "fbl_st",
+        "httpOnly": false,
+        "path": "/",
+        "secure": true
+    },
+    {
+        "secure": true,
+        "storeId": null,
+        "value": "en_US",
+        "session": false,
+        "path": "/",
+        "name": "locale",
+        "httpOnly": false,
+        "domain": ".facebook.com",
+        "hostOnly": true
+    },
+    {
+        "hostOnly": true,
+        "path": "/",
+        "session": true,
+        "domain": ".facebook.com",
+        "httpOnly": false,
+        "secure": true,
+        "name": "m_pixel_ratio",
+        "storeId": null,
+        "value": "3"
+    },
+    {
+        "domain": ".facebook.com",
+        "name": "c_user",
+        "storeId": null,
+        "path": "/",
+        "hostOnly": true,
+        "httpOnly": false,
+        "session": false,
+        "secure": true,
+        "value": "61576464317681"
+    },
+    {
+        "value": "%7B%2261576464317681%22%3A%22uTyRPxwF%22%7D",
+        "secure": true,
+        "session": false,
+        "storeId": null,
+        "path": "/login/device-based/",
+        "domain": ".facebook.com",
+        "hostOnly": true,
+        "httpOnly": true,
+        "name": "dbln"
+    },
+    {
+        "session": false,
+        "httpOnly": true,
+        "path": "/",
+        "name": "pas",
+        "secure": true,
+        "sameSite": "lax",
+        "value": "61576464317681%3Ax18r6qDDm4",
+        "hostOnly": true,
+        "storeId": null,
+        "domain": ".facebook.com"
+    },
+    {
+        "path": "/",
+        "hostOnly": true,
+        "storeId": null,
+        "name": "ps_n",
+        "secure": true,
+        "httpOnly": true,
+        "value": "1",
+        "domain": ".facebook.com",
+        "session": false
+    },
+    {
+        "storeId": null,
+        "value": "uhO6ap5D1X2vYCxbqyE1hSAX",
+        "path": "/",
+        "hostOnly": true,
+        "name": "sb",
+        "domain": ".facebook.com",
+        "httpOnly": true,
+        "session": false,
+        "secure": true
+    },
+    {
+        "name": "wd",
+        "hostOnly": true,
+        "value": "390x844",
+        "secure": true,
+        "domain": ".facebook.com",
+        "path": "/",
+        "storeId": null,
+        "httpOnly": false,
+        "session": true
+    },
+    {
+        "storeId": null,
+        "value": "v2%3Bclient_version%3A3306%3Btimestamp%3A1790579675",
+        "secure": true,
+        "hostOnly": true,
+        "name": "wl_cbv",
+        "path": "/",
+        "domain": ".facebook.com",
+        "httpOnly": false,
+        "session": false
+    }
+]
