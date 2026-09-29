@@ -5,10 +5,10 @@ const path = require("path");
 module.exports = {
   config: {
     name: "owner",
-    version: "1.3.0",
+    version: "2.1.0",
     author: "Mᴏʜᴀᴍᴍᴀᴅ Aᴋᴀsʜ",
     role: 0,
-    shortDescription: "Owner information with image",
+    shortDescription: "Owner information with video",
     category: "Information",
     guide: {
       en: "owner"
@@ -17,41 +17,45 @@ module.exports = {
 
   onStart: async function ({ api, event }) {
     const ownerText = 
-`╭─ 👑 Oᴡɴᴇʀ Iɴғᴏ 👑 ─╮
-│ 👤 Nᴀᴍᴇ       : Mᴏʜᴀᴍᴍᴀᴅ Aᴋᴀsʜ
-│ 🧸 Nɪᴄᴋ       : Aᴋᴀsʜ
-│ 🎂 Aɢᴇ        : 18+
-│ 💘 Rᴇʟᴀᴛɪᴏɴ : Sɪɴɢʟᴇ
-│ 🎓 Pʀᴏғᴇssɪᴏɴ : Sᴛᴜᴅᴇɴᴛ
-│ 📚 Eᴅᴜᴄᴀᴛɪᴏɴ : Iɴᴛᴇʀ 2ɴᴅ Yᴇᴀʀ
-│ 🏡 Lᴏᴄᴀᴛɪᴏɴ : 𝐃𝐡𝐚𝐤𝐚 - 𝐆𝐚𝐳𝐢𝐩𝐮𝐫
-├─ 🔗 Cᴏɴᴛᴀᴄᴛ ─╮
-│ 📘 Facebook  : fb.com/akashx404 
-│ 💬 Messenger: m.me/akashx404 
-│ 📞 WhatsApp  : wa.me/01933165880
-╰────────────────╯`;
+`┌───[ 👤 OWNER PROFILE ]───
+│ ❯ Name      : NIROB
+│ ❯ Nickname  : Kakashi
+│ ❯ Age       : 20
+│ ❯ Education : api / JavaScript 🥰💔
+│ ❯ Location  : Dhaka,Munshiganj
+├───[ 🔗 CONTACT SYSTEM ]───
+│ ❯ Facebook  : fb.com/nahad.nirob007
+│ ❯ WhatsApp  : +8801744244119
+└───────────────────────────`;
 
     const cacheDir = path.join(__dirname, "cache");
-    const imgPath = path.join(cacheDir, "owner.jpg");
+    const videoPath = path.join(cacheDir, "owner.mp4");
 
-    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
 
-    const imgLink = "https://i.imgur.com/1G4ZhU7.jpeg";
+    // এখানে তোমার ভিডিওর ডাইরেক্ট MP4 লিংক দাও
+    const videoLink = "https://i.imgur.com/your_video_link.mp4";
 
     const send = () => {
       api.sendMessage(
         {
           body: ownerText,
-          attachment: fs.createReadStream(imgPath)
+          attachment: fs.createReadStream(videoPath)
         },
         event.threadID,
-        () => fs.unlinkSync(imgPath),
+        () => {
+          if (fs.existsSync(videoPath)) fs.unlinkSync(videoPath);
+        },
         event.messageID
       );
     };
 
-    request(encodeURI(imgLink))
-      .pipe(fs.createWriteStream(imgPath))
-      .on("close", send);
+    request(encodeURI(videoLink))
+      .pipe(fs.createWriteStream(videoPath))
+      .on("close", send)
+      .on("error", (err) => {
+        console.error("Video Download Error:", err);
+        api.sendMessage("ভিডিও পাঠাতে সমস্যা হয়েছে!", event.threadID, event.messageID);
+      });
   }
 };
