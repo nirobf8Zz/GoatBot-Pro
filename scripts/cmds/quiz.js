@@ -1,142 +1,91 @@
 const axios = require("axios");
 
+const baseApiUrl = async () => {
+    const base = await axios.get(
+        "https://raw.githubusercontent.com/Blankid018/D1PT0/main/baseApiUrl.json"
+    );
+    return base.data.api;
+};
+
 module.exports.config = {
-  name: "quiz",
-  version: "2.0",
-  author: "EryXenX",
-  role: 0,
-  category: "economy",
-  countDown: 10,
-  shortDescription: "Answer quiz questions to earn money",
-  guide: "{prefix}quiz"
+    name: "quiz",
+    version: "1.0",
+    author: "Mesbah Bb'e",
+    countDown: 5,
+    role: 0,
+    description: {
+        en: "quiz game",
+    },
+    category: "GAME",
+    guide: {
+        en: "{pn}"
+    },
 };
 
-const usedQuestions = new Map();
+module.exports.onStart = async function ({ api, event }) {
+    const { threadID: t, messageID: m } = event;
+    try {
+        const response = await axios.get(`${await baseApiUrl()}/quiz3?randomQuiz=random`);
+        const imageStream = await axios({
+            method: "GET",
+            url: response.data.link,
+            responseType: 'stream'
+        });
+        api.sendMessage({
+            body: "Please reply to this photo with your answer:",
+            attachment: imageStream.data
+        }, t, (error, info) => {
+            global.GoatBot.onReply.set(info.messageID, {
+                commandName: this.config.name,
+                author: event.senderID,
+                messageID: info.messageID,
+                correctAnswer: response.data.quiz,
+                rewardAmount: 200
+            });
+            setTimeout(async () => {
+                await api.unsendMessage(info.messageID);
+                global.GoatBot.onReply.delete(info.messageID);
+            }, 30000);
+        },m);
 
-function decodeHTML(str) {
-  return str
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#039;/g, "'")
-    .replace(/&ldquo;/g, "\u201C")
-    .replace(/&rdquo;/g, "\u201D")
-    .replace(/&lsquo;/g, "\u2018")
-    .replace(/&rsquo;/g, "\u2019");
-}
-
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-async function fetchQuestion(senderID) {
-  const used = usedQuestions.get(senderID) || new Set();
-
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const res = await axios.get("https://opentdb.com/api.php?amount=5&type=multiple");
-    const results = res.data?.results;
-    if (!results) continue;
-
-    for (const item of results) {
-      const question = decodeHTML(item.question);
-      if (used.has(question)) continue;
-
-      const correct = decodeHTML(item.correct_answer);
-      const wrong = item.incorrect_answers.map(decodeHTML);
-      const allOptions = shuffle([correct, ...wrong]);
-      const labels = ["A", "B", "C", "D"];
-      const answerLabel = labels[allOptions.indexOf(correct)];
-      const options = allOptions.map((opt, i) => `${labels[i]}. ${opt}`);
-
-      used.add(question);
-      if (used.size > 200) {
-        const first = used.values().next().value;
-        used.delete(first);
-      }
-      usedQuestions.set(senderID, used);
-
-      return { question, options, answer: answerLabel };
+    } catch (error) {
+        console.error(error);
+        api.sendMessage(`Error: ${error.message}`, t);
     }
-  }
-
-  return null;
-}
-
-module.exports.onStart = async function ({ api, event, usersData }) {
-  const { senderID, threadID, messageID } = event;
-
-  let quizData;
-  try {
-    quizData = await fetchQuestion(senderID);
-  } catch (e) {
-    return api.sendMessage("❌ Failed to fetch question. Try again later.", threadID, messageID);
-  }
-
-  if (!quizData)
-    return api.sendMessage("❌ Could not get a new question. Try again later.", threadID, messageID);
-
-  const msg =
-`📝 QUIZ TIME!
-
-❓ ${quizData.question}
-
-${quizData.options.join("\n")}
-
-⏱ Reply with A, B, C or D
-✅ Correct → +500$
-❌ Wrong → -50$`;
-
-  api.sendMessage(msg, threadID, (err, info) => {
-    if (err) return;
-    global.GoatBot.onReply.set(info.messageID, {
-      commandName: "quiz",
-      messageID: info.messageID,
-      answer: quizData.answer,
-      senderID
-    });
-
-    setTimeout(() => {
-      if (global.GoatBot.onReply.has(info.messageID)) {
-        global.GoatBot.onReply.delete(info.messageID);
-        api.unsendMessage(info.messageID);
-      }
-    }, 60000);
-  }, messageID);
 };
 
-module.exports.onReply = async function ({ api, event, usersData, Reply }) {
-  const { senderID, threadID, messageID, body } = event;
-  const { answer } = Reply;
+module.exports.onReply = async function ({ api, usersData, args, event, Reply }) {
+    const { threadID: t, senderID: s, messageID: m } = event;
+    const { author, correctAnswer, messageID, rewardAmount } = Reply;
+    if (s !== author) 
+        return api.sendMessage("who are you 🐸",t,m);
 
-  const userAnswer = body.trim().toUpperCase();
+    try {
+        const userAnswer = args.join(" ").trim();
+        const isCorrect = (userAnswer.toLowerCase() === correctAnswer.toLowerCase());
+        const userData = await usersData.get(s);
+        const name = userData.name;
 
-  if (!["A", "B", "C", "D"].includes(userAnswer))
-    return api.sendMessage("⚠ Please reply with only A, B, C or D.", threadID, messageID);
-
-  global.GoatBot.onReply.delete(Reply.messageID);
-
-  const userData = await usersData.get(senderID);
-  let balance = userData?.data?.money ?? 100;
-
-  if (userAnswer === answer) {
-    balance += 500;
-    await usersData.set(senderID, { data: { ...userData.data, money: balance } });
-    api.sendMessage(
-      `✅ Correct! The answer was ${answer}\n💵 Won +500$\n💰 Balance: ${balance}$`,
-      threadID, messageID
-    );
-  } else {
-    balance = Math.max(0, balance - 50);
-    await usersData.set(senderID, { data: { ...userData.data, money: balance } });
-    api.unsendMessage(Reply.messageID);
-    api.sendMessage(
-      `❌ Wrong! The correct answer was ${answer}\n💸 Lost -50$\n💰 Balance: ${balance}$`,
-      threadID, messageID
-    );
-  }
+        if (isCorrect) {
+     	   await api.unsendMessage(messageID);
+     	   global.GoatBot.onReply.delete(messageID);
+            userData.money += rewardAmount;
+            await usersData.set(s, userData);
+            await api.sendMessage({
+                body: `Correct answer, ${name}! You earned ${rewardAmount}$.`,
+                mentions: [{ tag: name, id: s }]
+            }, t, m);
+        } else {
+        	await api.unsendMessage(messageID);
+     	   global.GoatBot.onReply.delete(messageID);
+            userData.money -= 5;
+            await usersData.set(s, userData);
+            await api.sendMessage({
+                body: "Incorrect answer, try again.",
+            }, t, m);
+        }
+    } catch (error) {
+        console.error(error);
+        api.sendMessage(`Error: ${error.message}`, t);
+    }
 };

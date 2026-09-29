@@ -1,53 +1,43 @@
-const axios = require('axios'); // ✅ Axios সরাসরি import করা হয়েছে
+const axios = require("axios");
+const baseApiUrl = async () => {
+  const base = await axios.get(
+    `https://raw.githubusercontent.com/Blankid018/D1PT0/main/baseApiUrl.json`,
+  );
+  return base.data.api;
+};
 
-module.exports = {
-  config: {
-    name: "imgur",
-    version: "1.0.2",
-    author: "MOHAMMAD AKASH",
-    role: 0,
-    shortDescription: "Upload image/video/GIF to Imgur and get direct links",
-    longDescription: "Reply to any image, video, or GIF to upload it to Imgur and get the link.",
-    category: "other",
-    guide: "[reply with any media file]",
-    cooldowns: 0
-  },
-
-  onStart: async function ({ api, event }) {
-    // Get API link from JSON
-    let Shaon;
-    try {
-      const apis = await axios.get('https://raw.githubusercontent.com/shaonproject/Shaon/main/api.json');
-      Shaon = apis.data.imgur;
-    } catch {
-      return api.sendMessage("❌ Failed to fetch Imgur API link!", event.threadID, event.messageID);
-    }
-
-    const reply = event.messageReply;
-    if (!reply || !reply.attachments || reply.attachments.length === 0) {
+(module.exports.config = {
+  name: "imgur",
+  version: "6.9",
+  author: "dipto",
+  countDown: 5,
+  role: 0,
+  category: "media",
+  description: "convert image/video into Imgur link",
+  category: "tools",
+  usages: "reply [image, video]",
+}),
+  (module.exports.onStart = async function ({ api, event }) {
+    const dip = event.messageReply?.attachments[0]?.url;
+    if (!dip) {
       return api.sendMessage(
-        "Please reply to the image or video with the command Imgur...!✅",
+        "Please reply to an image or video.",
         event.threadID,
-        event.messageID
+        event.messageID,
       );
     }
-
-    const links = [];
-
-    for (const attachment of reply.attachments) {
-      try {
-        const url = encodeURIComponent(attachment.url);
-        const upload = await axios.get(`${Shaon}/imgur?link=${url}`);
-        links.push(upload.data.uploaded.image || "❌ No link received");
-      } catch (e) {
-        links.push("❌ Failed to upload");
-      }
+    try {
+      const res = await axios.get(
+        `${await baseApiUrl()}/imgur?url=${encodeURIComponent(dip)}`,
+      );
+      const dipto = res.data.data;
+      api.sendMessage(dipto, event.threadID, event.messageID);
+    } catch (error) {
+      console.error(error);
+      return api.sendMessage(
+        "Failed to convert image or video into link.",
+        event.threadID,
+        event.messageID,
+      );
     }
-
-    const messageToSend = links.length === 1
-      ? links[0]
-      : `✅ Uploaded files Imgur links:\n\n${links.join("\n")}`;
-
-    return api.sendMessage(messageToSend, event.threadID, event.messageID);
-  }
-};
+  });

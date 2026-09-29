@@ -1,104 +1,41 @@
 const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
-const FormData = require("form-data");
 
-module.exports = {
-  config: {
-    name: "catbox",
-    version: "1.0.0",
-    author: "EryXenX",
-    role: 0,
-    shortDescription: "Upload media to Catbox",
-    longDescription: "Reply to an image, video, audio, or file to upload it to Catbox",
-    category: "media",
-    guide: "{pn} (reply to a file)",
-    cooldowns: 5
-  },
-
-  onStart: async function ({ api, event }) {
-    const { threadID, messageID, type, messageReply } = event;
-
-    if (
-      type !== "message_reply" ||
-      !messageReply ||
-      !messageReply.attachments ||
-      messageReply.attachments.length === 0
-    ) {
-      return api.sendMessage(
-        "Reply to an image, video, audio, or file.",
-        threadID,
-        messageID
-      );
-    }
-
-    const attachment = messageReply.attachments[0];
-    const ext = attachment.filename
-      ? path.extname(attachment.filename)
-      : ".tmp";
-
-    const cacheDir = path.join(__dirname, "cache");
-
-    if (!fs.existsSync(cacheDir)) {
-      fs.mkdirSync(cacheDir, { recursive: true });
-    }
-
-    const filePath = path.join(
-      cacheDir,
-      `catbox_${Date.now()}${ext}`
-    );
-
-    try {
-      const file = await axios({
-        url: attachment.url,
-        method: "GET",
-        responseType: "stream"
-      });
-
-      const writer = fs.createWriteStream(filePath);
-      file.data.pipe(writer);
-
-      await new Promise((resolve, reject) => {
-        writer.on("finish", resolve);
-        writer.on("error", reject);
-      });
-
-      const form = new FormData();
-      form.append("reqtype", "fileupload");
-      form.append("fileToUpload", fs.createReadStream(filePath));
-
-      const upload = await axios.post(
-        "https://catbox.moe/user/api.php",
-        form,
-        {
-          headers: form.getHeaders(),
-          maxBodyLength: Infinity,
-          maxContentLength: Infinity
-        }
-      );
-
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-
-      return api.sendMessage(
-        upload.data.trim(),
-        threadID,
-        messageID
-      );
-
-    } catch (err) {
-      console.error("Catbox Error:", err);
-
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-
-      return api.sendMessage(
-        "Upload failed.",
-        threadID,
-        messageID
-      );
-    }
-  }
+const baseApiUrl = async () => {
+  const base = await axios.get(
+    `https://raw.githubusercontent.com/Blankid018/D1PT0/main/baseApiUrl.json`
+  );
+  return base.data.api;
 };
+
+(module.exports.config = {
+  name: "catbox",
+  aliases: ["cat","cb"],
+  version: "1.6.9",
+  author: "Nazrul",
+  role: 0,
+  category: "utility",
+  Description: "Convert mp4/mp3/image to link",
+  countdown: 5,
+  guide: {
+    en: "reply to a mp4/mp3/image to upload in catbox"
+  }
+},
+
+module.exports.onStart = async ({ api, event }) => {
+  try {
+   const allUrl = event.messageReply?.attachments[0]?.url; 
+   if (!allUrl) {
+        return api.sendMessage("❌ Please reply to a attachment for Upload..!", event.threadID, event.messageID);
+      };
+   const msg = await api.sendMessage("✨ Uploading Your attachment.. Please Wait✨", event.threadID);
+
+   const { data } = await axios.get(`${await baseApiUrl()}/catbox?url=${encodeURIComponent(allUrl)}`);
+
+  await api.unsendMessage(msg.messageID);
+
+     api.sendMessage(`✅ Here's your Uploaded Url ✨\n\n`+ data.url , event.threadID, event.messageID);
+        
+  } catch (e) {
+    api.sendMessage("❌ error while uploading your attachment.", event.threadID);
+  }
+  });

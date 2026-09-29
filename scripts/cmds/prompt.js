@@ -1,73 +1,32 @@
-const axios = require("axios");
-
-const configUrl = "https://raw.githubusercontent.com/aryannix/stuffs/master/raw/apis.json";
-
-module.exports = {
-  config: {
+const axios = require('axios');
+const baseApiUrl = async () => {
+  const base = await axios.get(
+    `https://raw.githubusercontent.com/Blankid018/D1PT0/main/baseApiUrl.json`,
+  );
+  return base.data.api;
+};
+module.exports.config ={
     name: "prompt",
-    aliases: ["p"],
-    version: "0.0.1",
+    version: "6.9",
+    author: "dipto",
+    countDown: 5,
     role: 0,
-    author: "ArYAN",
-    category: "AI",
-    cooldowns: 5,
-    guide: { en: "Reply to an image to generate Midjourney prompt" }
+    category: "media",
+    description: " image to prompt",
+    category: "tools",
+    usages: "reply [image]"
   },
 
-  onStart: async ({ api, event }) => {
-    const { threadID, messageID, messageReply } = event;
-
-    let baseApi;
+module.exports.onStart = async ({ api, event,args }) =>{
+    const dip = event.messageReply?.attachments[0]?.url || args.join(' ');
+    if (!dip) {
+      return api.sendMessage('Please reply to an image.', event.threadID, event.messageID);
+    }
     try {
-      const configRes = await axios.get(configUrl);
-      baseApi = configRes.data && configRes.data.api;
-      if (!baseApi) throw new Error("Configuration Error: Missing API in GitHub JSON.");
+      const prom = (await axios.get(`${await baseApiUrl()}/prompt?url=${encodeURIComponent(dip)}`)).data.prompt;
+         api.sendMessage(prom, event.threadID, event.messageID);
     } catch (error) {
-      return api.sendMessage("❌ Failed to fetch API configuration from GitHub.", threadID, messageID);
+      console.error(error);
+      return api.sendMessage('Failed to convert image into text.', event.threadID, event.messageID);
     }
-
-    if (
-      !messageReply ||
-      !messageReply.attachments ||
-      messageReply.attachments.length === 0 ||
-      !messageReply.attachments[0].url
-    ) {
-      return api.sendMessage("Please reply to an image.", threadID, messageID);
-    }
-
-    try {
-      api.setMessageReaction("⏰", messageID, () => {}, true);
-
-      const imageUrl = messageReply.attachments[0].url;
-      const apiUrl = `${baseApi}/promptv2`;
-
-      const apiResponse = await axios.get(apiUrl, {
-        params: { imageUrl }
-      });
-
-      const result = apiResponse.data;
-
-      if (!result.success) {
-        throw new Error(result.message || "Prompt API failed.");
-      }
-
-      const promptText = result.prompt || "No prompt returned.";
-
-      await api.sendMessage(
-        { body: `${promptText}` },
-        threadID,
-        messageID
-      );
-
-      api.setMessageReaction("✅", messageID, () => {}, true);
-    } catch (e) {
-      api.setMessageReaction("❌", messageID, () => {}, true);
-
-      let msg = "Error while generating prompt.";
-      if (e.response?.data?.error) msg = e.response.data.error;
-      else if (e.message) msg = e.message;
-
-      api.sendMessage(msg, threadID, messageID);
-    }
-  }
-};
+  };
